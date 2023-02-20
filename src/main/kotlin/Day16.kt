@@ -7,7 +7,7 @@ fun main() {
     println(day16.parseValves())
     var solutionA: Int
     val durationA = measureTimeMillis { solutionA = day16.search(30) }
-    println("duration in miliseconds: $durationA")
+    println("duration in milliseconds: $durationA")
     println(solutionA)
     println(day16.searchCache.size)
     println(day16.cacheCounter)
@@ -16,7 +16,7 @@ fun main() {
     day16.cacheCounter = 0
     var solutionB: Int
     val durationB = measureTimeMillis { solutionB = day16.search(26, elephant = true) }
-    println("duration in miliseconds: $durationB")
+    println("duration in milliseconds: $durationB")
     println(solutionB)
     println(day16.searchCache.size)
     println(day16.cacheCounter)
