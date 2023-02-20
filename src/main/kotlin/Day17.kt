@@ -1,6 +1,7 @@
 fun main() {
     val day17 = Day17("input/17_test.txt")
-    println (day17.solveA(2022))
+    println(day17.solveA(2022))
+    // 3090
 
 }
 
@@ -18,28 +19,27 @@ class Day17(inputFileName: String) : Day(inputFileName) {
             .map { inputChars[it % inputChars.size] }
             .map { Move.from(it) }
 
-//        return input.toCharArray().map { Move.from(it) }.asSequence()
     }
 
     fun solveA(rounds: Int): Any {
 
-//        val cave = Array(moves.count() * 4) { Array(7) { false } }
         val caveWidth = 7
-        val cave = Cave(caveWidth, 6000)
+        val cave = Cave(caveWidth, rounds * 4)
         cave.fallingRock = Rock.nextAt(Pos(2, 3))
 
         var rockCounter = 1
 
         val infiniteMoves = moves.iterator()
-        while (rockCounter <= rounds){
+//        for (round in )
+        while (rockCounter <= rounds) {
             val move = infiniteMoves.next()
 
-            println(cave.fallingRock)
-            println(cave)
-            println("MOVING $move")
-            cave.fallingRock.moveSidewaysIfPossible(move, cave.width)
-            println(cave)
-            println("MOVING DOWN")
+//            println(cave.fallingRock)
+////            println(cave)
+//            println("MOVING $move")
+            cave.fallingRock.moveSidewaysIfPossible(move, cave)
+////            println(cave)
+//            println("MOVING DOWN")
 
             try {
                 cave.fallingRock.moveDownOrStop(cave)
@@ -47,11 +47,13 @@ class Day17(inputFileName: String) : Day(inputFileName) {
                 rockCounter++
                 cave.addRock(cave.fallingRock)
                 cave.fallingRock = Rock.nextAt(Pos(2, cave.highestTile + 4))
-                println(e)
+//                println(e)
+                println("spawning rock no $rockCounter: ${cave.fallingRock.name} at ${cave.fallingRock.bottomEdge()} / ${cave.fallingRock.leftEdge()}")
+//                println(cave)
             }
         }
 
-        return cave.highestTile
+        return cave.highestTile+1
     }
 
     data class Cave(val width: Int, val height: Int) {
@@ -66,6 +68,8 @@ class Day17(inputFileName: String) : Day(inputFileName) {
         }
 
         fun downIsBlocked(pos: Pos) = pos.y == 0 || tiles[pos.y - 1][pos.x]
+        fun leftIsBlocked(pos: Pos) = pos.x == 0 || tiles[pos.y][pos.x-1]
+        fun rightIsBlocked(pos: Pos) = pos.x == width-1 || tiles[pos.y][pos.x+1]
 
         override fun toString(): String {
             return tiles
@@ -76,15 +80,16 @@ class Day17(inputFileName: String) : Day(inputFileName) {
                             col -> '#'
                             else -> '`'
                         }
-                    }.joinToString("")
+                    }.joinToString("", prefix = "${cy.toString().padStart(3)}: ")
                 }
-                .take(highestTile + 6)
+                .take(highestTile + 8)
                 .reversed()
                 .joinToString("\n")
+                .plus("highest tile: $highestTile")
         }
     }
 
-    enum class Rock(val shape: List<Pos>) {
+    enum class Rock(val originalShape: List<Pos>) {
 
         /**
          * Rock shapes:
@@ -109,18 +114,19 @@ class Day17(inputFileName: String) : Day(inputFileName) {
         val leftEdge = { shape.minOf { it.x } }
         val rightEdge = { shape.maxOf { it.x } }
         val topEdge = { shape.maxOf { it.y } }
-
         val bottomEdge = { shape.minOf { it.y } }
+
+        var shape = originalShape.map { it.copy() }
 
         fun moveDownOrStop(cave: Cave) {
             if (shape.none { cave.downIsBlocked(it) }) shape.forEach { tile -> tile.y-- }
             else throw Exception("rock can't fall deeper, coming to rest")
         }
 
-        fun moveSidewaysIfPossible(move: Move, width: Int) {
+        fun moveSidewaysIfPossible(move: Move, cave: Cave) {
             when (move) {
-                Move.L -> if (leftEdge() > 0) shape.forEach { tile -> tile.x-- }
-                Move.R -> if (rightEdge() + 1 < width) shape.forEach { tile -> tile.x++ }
+                Move.L -> if (shape.none { cave.leftIsBlocked(it) }) shape.forEach { tile -> tile.x-- }
+                Move.R -> if (shape.none { cave.rightIsBlocked(it) }) shape.forEach { tile -> tile.x++ }
             }
         }
 
@@ -138,7 +144,10 @@ class Day17(inputFileName: String) : Day(inputFileName) {
                     .iterator()
 
             fun nextAt(newPos: Pos): Rock = rocks.next()
-                .also { it.shape.forEach { tile -> tile.y += newPos.y; tile.x += newPos.x } }
+                .also {
+                    it.shape = it.originalShape.map { it.copy() }
+                    it.shape.forEach { tile -> tile.y += newPos.y; tile.x += newPos.x }
+                }
         }
     }
 
