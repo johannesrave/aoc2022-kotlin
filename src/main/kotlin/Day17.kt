@@ -12,7 +12,7 @@ class Day17(inputFileName: String) : Day(inputFileName) {
     fun solveA(rounds: Long): Any {
 
         val cave = Cave(7)
-        val moves = Move.parseMoves(input).iterator()
+        val moves = Move.getMoveSequenceFrom(input).iterator()
         cave.fallingRock = Rock.nextAt(Pos(2, 3))
         cave.addTiles(8)
 
@@ -22,6 +22,8 @@ class Day17(inputFileName: String) : Day(inputFileName) {
         var startSequence = emptyList<Int>().toMutableList()
         var periodicSequence = emptyList<Int>().toMutableList()
         val testSequenceLength = 30
+
+
 
         while (rockCounter <= rounds) {
             val move = moves.next()
@@ -52,8 +54,6 @@ class Day17(inputFileName: String) : Day(inputFileName) {
 
                 cave.fallingRock = Rock.nextAt(Pos(2, cave.highestTile + 4))
                 cave.addTiles(4)
-
-
             }
         }
 
@@ -75,7 +75,8 @@ class Day17(inputFileName: String) : Day(inputFileName) {
         val heightAfterPeriodicSequence = numberOfPeriods * periodicSequence.sum()
         val heightAfterEndingSequence = periodicSequence.take(roundsForEndingSequence.toInt()).sum()
 
-        val heightAfterAllRounds = heightAfterStartingSequence + heightAfterPeriodicSequence + heightAfterEndingSequence + 1
+        val heightAfterAllRounds =
+            heightAfterStartingSequence + heightAfterPeriodicSequence + heightAfterEndingSequence + 1
 
         return heightAfterAllRounds
     }
@@ -183,26 +184,18 @@ class Day17(inputFileName: String) : Day(inputFileName) {
     data class Pos(var x: Int = 0, var y: Int = 0)
 
     enum class Move {
-
         L, R;
 
         companion object {
-            fun from(c: Char): Move {
-                return when (c) {
-                    '<' -> L
-                    '>' -> R
-                    else -> throw IllegalArgumentException()
+            internal fun getMoveSequenceFrom(input: String): Sequence<Move> = generateSequence(0) { it + 1 }
+                .map { input[it % input.length] }
+                .map {
+                    when (it) {
+                        '<' -> L
+                        '>' -> R
+                        else -> throw IllegalArgumentException()
+                    }
                 }
-            }
-
-            internal fun parseMoves(input: String): Sequence<Move> {
-
-                val inputChars = input.toCharArray()
-                return generateSequence(0) { it + 1 }
-                    .map { inputChars[it % inputChars.size] }
-                    .map { Move.from(it) }
-
-            }
         }
     }
 }
