@@ -1,63 +1,87 @@
+import kotlin.system.measureTimeMillis
+
 fun main() {
-    val day17 = Day17("input/17_test.txt")
-    println(day17.solveA(2022))
+    val day17 = Day17("input/17.txt")
+    val elapsedTime = measureTimeMillis { day17.solveA(1000000000000).also { println(it) } }
+    println("Time taken: $elapsedTime ms")
     // 3090
 
 }
 
 class Day17(inputFileName: String) : Day(inputFileName) {
-    private val moves: Sequence<Move>
+    fun solveA(rounds: Long): Any {
 
-    init {
-        this.moves = parseMoves(input)
-    }
-
-    private fun parseMoves(input: String): Sequence<Move> {
-
-        val inputChars = input.toCharArray()
-        return generateSequence(0) { it + 1 }
-            .map { inputChars[it % inputChars.size] }
-            .map { Move.from(it) }
-
-    }
-
-    fun solveA(rounds: Int): Any {
-
-        val caveWidth = 7
-        val cave = Cave(caveWidth, rounds * 4)
+        val cave = Cave(7)
+        val moves = Move.parseMoves(input).iterator()
         cave.fallingRock = Rock.nextAt(Pos(2, 3))
+        cave.addTiles(8)
 
-        var rockCounter = 1
+        var rockCounter = 1L
 
-        val infiniteMoves = moves.iterator()
-//        for (round in )
+        val sequenceOfIncrements = emptyList<Int>().toMutableList()
+        var startSequence = emptyList<Int>().toMutableList()
+        var periodicSequence = emptyList<Int>().toMutableList()
+        val testSequenceLength = 30
+
         while (rockCounter <= rounds) {
-            val move = infiniteMoves.next()
+            val move = moves.next()
 
-//            println(cave.fallingRock)
-////            println(cave)
-//            println("MOVING $move")
             cave.fallingRock.moveSidewaysIfPossible(move, cave)
-////            println(cave)
-//            println("MOVING DOWN")
 
             try {
                 cave.fallingRock.moveDownOrStop(cave)
             } catch (e: Exception) {
                 rockCounter++
+                val oldHighestTile = cave.highestTile
                 cave.addRock(cave.fallingRock)
+                sequenceOfIncrements += cave.highestTile - oldHighestTile
+
+                if (sequenceOfIncrements.size > testSequenceLength) {
+                    val message = sequenceOfIncrements.joinToString("")
+
+                    val pattern = message.takeLast(testSequenceLength).toRegex()
+                    val matchResult = pattern.find(message.dropLast(testSequenceLength), 0)
+                    if (matchResult != null) {
+                        println("found period from ${matchResult.range.first} to ${sequenceOfIncrements.size}")
+                        val period = matchResult.range.first..sequenceOfIncrements.size - testSequenceLength
+                        startSequence = sequenceOfIncrements.take(period.first).toMutableList()
+                        periodicSequence = sequenceOfIncrements.subList(period.first, period.last)
+                        break
+                    }
+                }
+
                 cave.fallingRock = Rock.nextAt(Pos(2, cave.highestTile + 4))
-//                println(e)
-                println("spawning rock no $rockCounter: ${cave.fallingRock.name} at ${cave.fallingRock.bottomEdge()} / ${cave.fallingRock.leftEdge()}")
-//                println(cave)
+                cave.addTiles(4)
+
+
             }
         }
 
-        return cave.highestTile+1
+        println(startSequence)
+        println(periodicSequence)
+
+        val roundsAfterStartingSequence = rounds - startSequence.size
+        val roundsForEndingSequence = roundsAfterStartingSequence % periodicSequence.size
+        val roundsForPeriodicCalculation = roundsAfterStartingSequence - roundsForEndingSequence
+        val numberOfPeriods = roundsForPeriodicCalculation / periodicSequence.size
+
+        println(startSequence.size)
+        println(roundsForPeriodicCalculation)
+        println(roundsForEndingSequence)
+
+        println(startSequence.size + roundsForPeriodicCalculation + roundsForEndingSequence)
+
+        val heightAfterStartingSequence = startSequence.sum()
+        val heightAfterPeriodicSequence = numberOfPeriods * periodicSequence.sum()
+        val heightAfterEndingSequence = periodicSequence.take(roundsForEndingSequence.toInt()).sum()
+
+        val heightAfterAllRounds = heightAfterStartingSequence + heightAfterPeriodicSequence + heightAfterEndingSequence + 1
+
+        return heightAfterAllRounds
     }
 
-    data class Cave(val width: Int, val height: Int) {
-        private val tiles = Array(height) { Array(width) { false } }
+    data class Cave(val width: Int) {
+        private val tiles = MutableList(1) { Array(width) { false } }
         var highestTile = 0
         lateinit var fallingRock: Rock
 
@@ -68,8 +92,8 @@ class Day17(inputFileName: String) : Day(inputFileName) {
         }
 
         fun downIsBlocked(pos: Pos) = pos.y == 0 || tiles[pos.y - 1][pos.x]
-        fun leftIsBlocked(pos: Pos) = pos.x == 0 || tiles[pos.y][pos.x-1]
-        fun rightIsBlocked(pos: Pos) = pos.x == width-1 || tiles[pos.y][pos.x+1]
+        fun leftIsBlocked(pos: Pos) = pos.x == 0 || tiles[pos.y][pos.x - 1]
+        fun rightIsBlocked(pos: Pos) = pos.x == width - 1 || tiles[pos.y][pos.x + 1]
 
         override fun toString(): String {
             return tiles
@@ -86,6 +110,10 @@ class Day17(inputFileName: String) : Day(inputFileName) {
                 .reversed()
                 .joinToString("\n")
                 .plus("highest tile: $highestTile")
+        }
+
+        fun addTiles(i: Int) {
+            tiles += MutableList(i) { Array(width) { false } }
         }
     }
 
@@ -132,7 +160,7 @@ class Day17(inputFileName: String) : Day(inputFileName) {
 
         override fun toString(): String {
             return "${this.name} at ${this.leftEdge()} / ${this.bottomEdge()} (${
-                shape.map { (x, y) -> "$x/$y" }.joinToString("-")
+                shape.joinToString("-") { (x, y) -> "$x/$y" }
             })"
         }
 
@@ -144,9 +172,10 @@ class Day17(inputFileName: String) : Day(inputFileName) {
                     .iterator()
 
             fun nextAt(newPos: Pos): Rock = rocks.next()
-                .also {
-                    it.shape = it.originalShape.map { it.copy() }
-                    it.shape.forEach { tile -> tile.y += newPos.y; tile.x += newPos.x }
+                .also { rock ->
+                    rock.shape = rock.originalShape
+                        .map { tile -> tile.copy() }
+                        .onEach { tile -> tile.y += newPos.y; tile.x += newPos.x }
                 }
         }
     }
@@ -165,8 +194,16 @@ class Day17(inputFileName: String) : Day(inputFileName) {
                     else -> throw IllegalArgumentException()
                 }
             }
+
+            internal fun parseMoves(input: String): Sequence<Move> {
+
+                val inputChars = input.toCharArray()
+                return generateSequence(0) { it + 1 }
+                    .map { inputChars[it % inputChars.size] }
+                    .map { Move.from(it) }
+
+            }
         }
     }
-
 }
 
