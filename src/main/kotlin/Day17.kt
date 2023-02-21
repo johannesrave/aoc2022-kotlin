@@ -140,12 +140,12 @@ class Day17(inputFileName: String) : Day(inputFileName) {
         var shape = originalShape.map { it.copy() }
 
         fun canMoveDown(cave: Cave): Boolean = shape.none { cave.downIsBlocked(it) }
-        fun moveDown() = shape.forEach { tile -> tile.y-- }
+        fun moveDown() = shape.onEach { tile -> tile.y-- }
 
         fun moveSidewaysIfPossible(move: Move, cave: Cave) {
             when (move) {
-                Move.L -> if (shape.none { cave.leftIsBlocked(it) }) shape.forEach { tile -> tile.x-- }
-                Move.R -> if (shape.none { cave.rightIsBlocked(it) }) shape.forEach { tile -> tile.x++ }
+                Move.L -> if (shape.none { cave.leftIsBlocked(it) }) shape.onEach { tile -> tile.x-- }
+                Move.R -> if (shape.none { cave.rightIsBlocked(it) }) shape.onEach { tile -> tile.x++ }
             }
         }
 
