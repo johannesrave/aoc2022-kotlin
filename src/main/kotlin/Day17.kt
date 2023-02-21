@@ -1,121 +1,114 @@
 import kotlin.system.measureTimeMillis
 
 fun main() {
-    val day17 = Day17("input/17.txt")
-    val elapsedTime = measureTimeMillis { day17.solveA(1000000000000).also { println(it) } }
-    println("Time taken: $elapsedTime ms")
+    // val day17a = Day17("input/17.txt")
+    // measureTimeMillis {
+    //     day17a.calculateHeight(2022)
+    //         .also { result -> println(result) }
+    // }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
     // 3090
+
+    val day17b = Day17("input/17.txt")
+    measureTimeMillis {
+        day17b.calculateHeight(1000000000000)
+            .also { result -> println(result) }
+    }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
+    // 1530057803453
 
 }
 
 class Day17(inputFileName: String) : Day(inputFileName) {
-    fun solveA(rounds: Long): Any {
+    fun calculateHeight(numOfRounds: Long): Any {
 
-        val cave = Cave(7)
-        val moves = Move.getMoveSequenceFrom(input).iterator()
-        cave.fallingRock = Rock.nextAt(Pos(2, 3))
-        cave.addTiles(8)
+        val cave = Cave()
+        val moves = Move.parseFrom(input)
+        var fallingRock = Rock.nextAt(cave.spawnPosition())
 
-        var rockCounter = 1L
+        val startSequence = mutableListOf<Int>()
+        val periodicSequence = mutableListOf<Int>()
 
-        val sequenceOfIncrements = emptyList<Int>().toMutableList()
-        var startSequence = emptyList<Int>().toMutableList()
-        var periodicSequence = emptyList<Int>().toMutableList()
-        val testSequenceLength = 30
+        for (i in 0 until numOfRounds) {
+            while (true) {
 
+                val move = moves.next()
+                fallingRock.moveSidewaysIfPossible(move, cave)
 
-
-        while (rockCounter <= rounds) {
-            val move = moves.next()
-
-            cave.fallingRock.moveSidewaysIfPossible(move, cave)
-
-            try {
-                cave.fallingRock.moveDownOrStop(cave)
-            } catch (e: Exception) {
-                rockCounter++
-                val oldHighestTile = cave.highestTile
-                cave.addRock(cave.fallingRock)
-                sequenceOfIncrements += cave.highestTile - oldHighestTile
-
-                if (sequenceOfIncrements.size > testSequenceLength) {
-                    val message = sequenceOfIncrements.joinToString("")
-
-                    val pattern = message.takeLast(testSequenceLength).toRegex()
-                    val matchResult = pattern.find(message.dropLast(testSequenceLength), 0)
-                    if (matchResult != null) {
-                        println("found period from ${matchResult.range.first} to ${sequenceOfIncrements.size}")
-                        val period = matchResult.range.first..sequenceOfIncrements.size - testSequenceLength
-                        startSequence = sequenceOfIncrements.take(period.first).toMutableList()
-                        periodicSequence = sequenceOfIncrements.subList(period.first, period.last)
-                        break
+                if (fallingRock.canMoveDown(cave)) {
+                    fallingRock.moveDown()
+                } else {
+                    cave.add(fallingRock)
+                    fallingRock = Rock.nextAt(cave.spawnPosition())
+                    detectPeriod(cave.heightIncrements)?.run {
+                        println("found period at $this")
+                        startSequence += cave.heightIncrements.take(first).toMutableList()
+                        periodicSequence += cave.heightIncrements.subList(first, last)
+                        // take this shortcut if a periodically repeating pattern could be detected
+                        return calculateHeightUsingPeriods(numOfRounds, startSequence, periodicSequence)
                     }
+                    break
                 }
-
-                cave.fallingRock = Rock.nextAt(Pos(2, cave.highestTile + 4))
-                cave.addTiles(4)
             }
         }
 
-        println(startSequence)
-        println(periodicSequence)
+        return cave.height
+    }
 
-        val roundsAfterStartingSequence = rounds - startSequence.size
+    private fun detectPeriod(data: MutableList<Int>, sampleLength: Int = 30): IntProgression? {
+        // the idea behind this shortcut is to detect repeating patterns in the height gains of the
+        // cave, caused by the interaction of the two infinite but periodic feeds in the rocks and
+        // the moves. if such periods are detected, then the rest of the calculation collapses into
+        // simple arithmetics, see "calculateHeightUsingPeriods()".
+
+        if (data.size < sampleLength * 2) return null
+
+        val dataString = data.joinToString("")
+        val pattern = dataString.takeLast(sampleLength).toRegex()
+        val stringToSearch = dataString.dropLast(sampleLength)
+
+        return pattern.find(stringToSearch)
+            ?.run { return range.first..(data.size - sampleLength) }
+    }
+
+    private fun calculateHeightUsingPeriods(
+        numOfRounds: Long,
+        startSequence: MutableList<Int>,
+        periodicSequence: MutableList<Int>
+    ): Long {
+        // if periods could be detected, then all the rounds can be split into three sequences:
+        // 1. an initial sequence that doesn't yet repeat but leads up to the period
+        // 2. a periodically repeating sequence
+        // 3. (in most cases) an incomplete periodic sequence (="tail"), if the number of rounds
+        // doesn't coincide with the length of the first two sequences
+        // calculating and summing up the height-gains for these sequences yields the final result.
+        val roundsAfterStartingSequence = numOfRounds - startSequence.size
         val roundsForEndingSequence = roundsAfterStartingSequence % periodicSequence.size
         val roundsForPeriodicCalculation = roundsAfterStartingSequence - roundsForEndingSequence
         val numberOfPeriods = roundsForPeriodicCalculation / periodicSequence.size
-
-        println(startSequence.size)
-        println(roundsForPeriodicCalculation)
-        println(roundsForEndingSequence)
-
-        println(startSequence.size + roundsForPeriodicCalculation + roundsForEndingSequence)
 
         val heightAfterStartingSequence = startSequence.sum()
         val heightAfterPeriodicSequence = numberOfPeriods * periodicSequence.sum()
         val heightAfterEndingSequence = periodicSequence.take(roundsForEndingSequence.toInt()).sum()
 
-        val heightAfterAllRounds =
-            heightAfterStartingSequence + heightAfterPeriodicSequence + heightAfterEndingSequence + 1
-
-        return heightAfterAllRounds
+        return heightAfterStartingSequence + heightAfterPeriodicSequence + heightAfterEndingSequence
     }
 
-    data class Cave(val width: Int) {
-        private val tiles = MutableList(1) { Array(width) { false } }
-        var highestTile = 0
-        lateinit var fallingRock: Rock
+    class Cave (maximumHeight: Int = 5000){
+        private val width = 7
+        private val tiles = Array(maximumHeight) { Array(width) { false } }
+        var height = -1
+        val heightIncrements = mutableListOf<Int>()
 
-        fun addRock(rock: Rock) {
+        fun add(rock: Rock) {
             rock.shape.forEach { (x, y) -> tiles[y][x] = true }
-            val minimumValue = rock.topEdge()
-            highestTile = highestTile.coerceAtLeast(minimumValue)
+            val prevHeight = height
+            height = height.coerceAtLeast(rock.topEdge())
+            heightIncrements += height - prevHeight
         }
 
         fun downIsBlocked(pos: Pos) = pos.y == 0 || tiles[pos.y - 1][pos.x]
         fun leftIsBlocked(pos: Pos) = pos.x == 0 || tiles[pos.y][pos.x - 1]
         fun rightIsBlocked(pos: Pos) = pos.x == width - 1 || tiles[pos.y][pos.x + 1]
-
-        override fun toString(): String {
-            return tiles
-                .mapIndexed { cy, row ->
-                    row.mapIndexed { cx, col ->
-                        when {
-                            fallingRock.shape.any { (x, y) -> x == cx && y == cy } -> 'T'
-                            col -> '#'
-                            else -> '`'
-                        }
-                    }.joinToString("", prefix = "${cy.toString().padStart(3)}: ")
-                }
-                .take(highestTile + 8)
-                .reversed()
-                .joinToString("\n")
-                .plus("highest tile: $highestTile")
-        }
-
-        fun addTiles(i: Int) {
-            tiles += MutableList(i) { Array(width) { false } }
-        }
+        fun spawnPosition(): Pos = Pos(2, height + 4)
     }
 
     enum class Rock(val originalShape: List<Pos>) {
@@ -141,16 +134,13 @@ class Day17(inputFileName: String) : Day(inputFileName) {
         E(listOf(Pos(0, 0), Pos(1, 0), Pos(0, 1), Pos(1, 1)));
 
         val leftEdge = { shape.minOf { it.x } }
-        val rightEdge = { shape.maxOf { it.x } }
         val topEdge = { shape.maxOf { it.y } }
         val bottomEdge = { shape.minOf { it.y } }
 
         var shape = originalShape.map { it.copy() }
 
-        fun moveDownOrStop(cave: Cave) {
-            if (shape.none { cave.downIsBlocked(it) }) shape.forEach { tile -> tile.y-- }
-            else throw Exception("rock can't fall deeper, coming to rest")
-        }
+        fun canMoveDown(cave: Cave): Boolean = shape.none { cave.downIsBlocked(it) }
+        fun moveDown() = shape.forEach { tile -> tile.y-- }
 
         fun moveSidewaysIfPossible(move: Move, cave: Cave) {
             when (move) {
@@ -181,22 +171,23 @@ class Day17(inputFileName: String) : Day(inputFileName) {
         }
     }
 
-    data class Pos(var x: Int = 0, var y: Int = 0)
-
     enum class Move {
         L, R;
 
         companion object {
-            internal fun getMoveSequenceFrom(input: String): Sequence<Move> = generateSequence(0) { it + 1 }
-                .map { input[it % input.length] }
-                .map {
-                    when (it) {
-                        '<' -> L
-                        '>' -> R
-                        else -> throw IllegalArgumentException()
-                    }
-                }
+            internal fun parseFrom(input: String): Iterator<Move> =
+                generateSequence(0) { it + 1 }
+                    .map { input[it % input.length] }
+                    .map {
+                        when (it) {
+                            '<' -> L
+                            '>' -> R
+                            else -> throw IllegalArgumentException()
+                        }
+                    }.iterator()
         }
     }
+
+    data class Pos(var x: Int = 0, var y: Int = 0)
 }
 
