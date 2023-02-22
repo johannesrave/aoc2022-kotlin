@@ -26,6 +26,13 @@ class Day18(inputFileName: String) : Day(inputFileName) {
     - floodfill the bounding cube to find continuous voxel-groups
     - add all groups that don't touch the bounding cube to the droplet-group
     - calculate its surface
+
+
+    alternative algo (not implemented):
+    - build bounding cube overlapping droplet on each side
+    - fill bounding cube with seed in a corner
+    - calculate the surface
+    - deduct outer surfaces of bounding cube
     */
     fun solve(): Any {
         val droplet = parseVoxelsFrom(input)
@@ -57,39 +64,44 @@ class Day18(inputFileName: String) : Day(inputFileName) {
 
         val pocketSeeds = droplet
             .flatMap { it.getNeighbours() }
-            .filter { pocket -> !droplet.contains(pocket) }
+            .filter { seed -> seed !in droplet }
+            .filter { (nx, ny, nz) -> boundingCube.getOrNull(nz)?.getOrNull(ny)?.getOrNull(nx) == 4 }
 //            .also { println(it) }
 
         val pockets = pocketSeeds.mapNotNull { seedVoxel ->
             val (x, y, z) = seedVoxel
-            if (boundingCube[z][y][x] != 0) return@mapNotNull null
+            if (boundingCube[z][y][x] != 0) {
+//                println("$seedVoxel isn't flagged empty - skipping")
+                return@mapNotNull null
+            }
+//            println("filling pocket starting at $seedVoxel")
 
             val pocket = mutableSetOf<Voxel>()
             val queue = mutableListOf(Voxel(x, y, z))
+            boundingCube[z][y][x] = 2
 
             var currentVoxel: Voxel
             while (queue.isNotEmpty()) {
+//                println("length of queue: ${queue.size}")
                 currentVoxel = queue.removeFirst()
-                val (cx, cy, cz) = currentVoxel
                 pocket.add(currentVoxel)
-                // flag as visited
-                boundingCube[cz][cy][cx] = 2
-                val neighbours = currentVoxel.getNeighbours()
+                val neighbours = currentVoxel
+                    .getNeighbours()
+                    .filter { (nx, ny, nz) -> boundingCube[nz][ny][nx] == 0 }
 
-                if (neighbours.any{(nx, ny, nz) -> boundingCube[nz][ny][nx] == 4}) return@mapNotNull null
+                neighbours.forEach { (nx, ny, nz) -> boundingCube[nz][ny][nx] = 2 }
 
-                val unvisitedNeighbours = neighbours.filter { (nx, ny, nz) -> boundingCube[nz][ny][nx] == 0 }
-
-                queue.addAll(unvisitedNeighbours)
+                queue.addAll(neighbours)
             }
             return@mapNotNull pocket
-        }.toSet()
+        }
+            .filter { it.any { voxel -> voxel.getNeighbours().none {(nx, ny, nz) -> boundingCube[nz][ny][nx] == 4 } } }
+            .toSet()
 
         println("pockets:")
         println(pockets.joinToString("\n"))
 
         return droplet.getSurfaces() - pockets.sumOf { it.getSurfaces() }
-
     }
 
     private fun parseVoxelsFrom(input: String): Set<Voxel> {
