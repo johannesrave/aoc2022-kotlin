@@ -22,30 +22,28 @@ class Day17(inputFileName: String) : Day(inputFileName) {
 
         val cave = Cave()
         val moves = Move.parseFrom(input)
-        var fallingRock = Rock.nextAt(cave.spawnPosition())
 
         val startSequence = mutableListOf<Int>()
         val periodicSequence = mutableListOf<Int>()
 
         for (i in 0 until numOfRounds) {
-            while (true) {
-
+            var fallingRock: Rock? = Rock.nextAt(cave.spawnPosition())
+            while (fallingRock != null) {
                 val move = moves.next()
                 fallingRock.moveSidewaysIfPossible(move, cave)
 
                 if (fallingRock.canMoveDown(cave)) {
                     fallingRock.moveDown()
                 } else {
-                    cave.add(fallingRock)
-                    fallingRock = Rock.nextAt(cave.spawnPosition())
+                    fallingRock.comeToRest(cave)
+                    fallingRock = null
                     detectPeriod(cave.heightIncrements)?.run {
                         println("found period at $this")
+                        // take this shortcut if a periodically repeating pattern could be detected
                         startSequence += cave.heightIncrements.take(first).toMutableList()
                         periodicSequence += cave.heightIncrements.subList(first, last)
-                        // take this shortcut if a periodically repeating pattern could be detected
                         return calculateHeightUsingPeriods(numOfRounds, startSequence, periodicSequence)
                     }
-                    break
                 }
             }
         }
@@ -153,6 +151,11 @@ class Day17(inputFileName: String) : Day(inputFileName) {
             return "${this.name} at ${this.leftEdge()} / ${this.bottomEdge()} (${
                 shape.joinToString("-") { (x, y) -> "$x/$y" }
             })"
+        }
+
+        fun comeToRest(cave: Cave) {
+            cave.add(this)
+
         }
 
         companion object {
