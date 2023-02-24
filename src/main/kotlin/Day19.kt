@@ -12,9 +12,11 @@ class Day19(inputFileName: String) : Day(inputFileName) {
     fun solve(): Any {
         val blueprints = Blueprint.parseFrom(input)
 
-        val result = blueprints.map { it.maximizeForGeodes() }
+        val result = blueprints.map {
+            it.maximizeForGeodes().also { println(it) }
+        }.mapIndexed { i, it -> (i + 1) * it }
 
-        return result
+        return result.sum()
     }
 
     data class Blueprint(
@@ -25,10 +27,10 @@ class Day19(inputFileName: String) : Day(inputFileName) {
         val oreForGeode: Int,
         val obsidianForGeode: Int
     ) {
-        fun maximizeForGeodes(): List<State> {
-            val t = 3
+        fun maximizeForGeodes(): Int {
+            val t = 24
 
-            var states = listOf(State())
+            var states = setOf(State())
 
             repeat(t) { i ->
                 states = states.flatMap { state ->
@@ -39,11 +41,12 @@ class Day19(inputFileName: String) : Day(inputFileName) {
                         state.buildObsidianBotOrNull(this),
                         state.buildGeodeBotOrNull(this)
                     )
-                }
-                println("states in round $i:")
-                println(states.joinToString("\n"))
+                }.filter { if (i > 20) it.geodes > 4 else true }.toSet()
+                println("round $i: no of states: ${states.size}")
+//                println("states in round $i:")
+//                println(states.joinToString("\n"))
             }
-            return states
+            return states.map { it.geodes }.max()
         }
 
         data class State(
@@ -104,11 +107,11 @@ class Day19(inputFileName: String) : Day(inputFileName) {
 
         companion object {
             private val pattern = (
-                    "ore robot costs (\\d+) ore.* " +
-                            "clay robot costs (\\d+) ore.* " +
-                            "obsidian robot costs (\\d+) ore and (\\d+) clay.* " +
-                            "geode robot costs (\\d+) ore and (\\d+) obsidian."
-                    )
+                "ore robot costs (\\d+) ore.* " +
+                    "clay robot costs (\\d+) ore.* " +
+                    "obsidian robot costs (\\d+) ore and (\\d+) clay.* " +
+                    "geode robot costs (\\d+) ore and (\\d+) obsidian."
+                )
                 .toRegex()
 
             fun parseFrom(input: String): List<Blueprint> {
@@ -129,8 +132,9 @@ class Day19(inputFileName: String) : Day(inputFileName) {
                         )
                     }.toList()
             }
+
+            private operator fun <E> List<E>.component6(): E = get(5)
         }
     }
 }
 
-private operator fun <E> List<E>.component6(): E = get(5)
