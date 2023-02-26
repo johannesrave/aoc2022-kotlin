@@ -1,29 +1,35 @@
+//import kotlin.test.
 import kotlin.system.measureTimeMillis
+import kotlin.test.assertEquals
 
 fun main() {
     val day19 = Day19("input/19.txt")
 //    val day19 = Day19("input/19_test.txt")
+
+    assertEquals(getEarliestFrom(2, 8), 7)
+    assertEquals(getEarliestFrom(4, 8), 10)
+    assertEquals(getEarliestFrom(4, 12), 12)
+    assertEquals(getEarliestFrom(4, 15), 13)
+
+
+    assertEquals(getEarliestFrom(14, 16), 24)
+
     measureTimeMillis {
         day19.solve()
-//            .also { result -> println(result) }
+            .also { result -> println(result) }
     }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
 }
+
 
 class Day19(inputFileName: String) : Day(inputFileName) {
     fun solve(): Any {
         val blueprints = Blueprint.parseFrom(input)
         val t = 24
 
-//        (1..10).map { getEarliestFrom(it, 15) }.also { println(it) }
-
         val result = blueprints
-            .take(2)
-            .also { println(it.map { Pair(it.id, it.canMineAtLeastOneGeode(24)) }) }
-//            .filter { it.canMineAtLeastOneGeode(t) }
-//            .also { println(it.map { it.id }) }
-//            .map { Pair(it.id, it.maximizeForGeodes()) }
-//            .also { println(it) }
-//            .sumOf { it.first * it.second }
+            .map { Triple(it.id, it.maximizeForGeodes(), it.canMineAtLeastOneGeode(t)) }
+            .also { println(it) }
+            .sumOf { it.first * it.second }
 
         return result
     }
@@ -44,29 +50,23 @@ class Day19(inputFileName: String) : Day(inputFileName) {
 
             repeat(t) { i ->
                 states = states.flatMap { state ->
-                    if (state.canAffordGeodeBot(this)) {
-                        listOf(state.buildGeodeBotOrNull(this)!!)
-                    } else if (state.canAffordObsidianBot(this)) {
-                        listOf(state.buildObsidianBotOrNull(this)!!)
-                    } else listOfNotNull(
-                        state.buildNothing(),
-                        state.buildOreBotOrNull(this),
-                        state.buildClayBotOrNull(this),
-//                        state.buildObsidianBotOrNull(this)
-                    )
+                    when {
+                        state.canAffordGeodeBot(this) -> listOf(state.buildGeodeBotOrNull(this)!!)
+                        else -> listOfNotNull(
+                            if (i < 22) state.buildNothing() else null,
+                            state.buildOreBotOrNull(this),
+                            state.buildClayBotOrNull(this),
+                            state.buildObsidianBotOrNull(this)
+                        )
+                    }
                 }
-                    .filter { it.oreBots + it.clayBots + it.obsidianBots + it.geodeBots < i + 5 }
                     .toSet()
-//                    .also {
-//                        it.sortedByDescending { it.geodes }
-//                            .also { it.takeLast(10).forEach { println(it) } }
-//                            .also { it.take(10).forEach { println(it) } }
-//                    }
-
+                    .also {
+                        it.sortedByDescending { it.geodes }
+                            .also { it.takeLast(10).takeIf{i == 23}?.forEach { println(it) } }
+                            .also { it.take(10).takeIf{i == 23}?.forEach { println(it) } }
+                    }
                 println("round $i: no of states: ${states.size}")
-
-//                println("states in round $i:")
-//                println(states.joinToString("\n"))
             }
             return states.maxOfOrNull { it.geodes } ?: 0
         }
@@ -199,29 +199,50 @@ class Day19(inputFileName: String) : Day(inputFileName) {
             // Each obsidian robot costs 2 ore and 15 clay.
             // Each geode robot costs 2 ore and 7 obsidian.
 
-            //
+            // this one should work:
+            // Blueprint 3:
+            // Each ore robot costs 4 ore.
+            // Each clay robot costs 3 ore.
+            // Each obsidian robot costs 2 ore and 14 clay.
+            // Each geode robot costs 2 ore and 7 obsidian.
+
+            // progression for clay should be:
+            // 1cb 3min  (3 clay) 2cb
+            // 2cb 6min  (9 clay) 3cb
+            // 3cb 9min (18 clay) 4cb
+            // threshold is 14 clay, reached after 8min (15 clay)
 
 
             println("blueprint ID: $id")
-            println("oreForClay: $oreForClay, clayForObsidian: $clayForObsidian, obsidianForGeode: $obsidianForGeode")
+//            println("oreForClay: $oreForClay, clayForObsidian: $clayForObsidian, obsidianForGeode: $obsidianForGeode")
 
             val earliestClay = oreForClay
-            println("earliestClay: $earliestClay")
-            val earliestObsidian = getEarliestFrom(oreForClay, clayForObsidian)
-            println("earliestObsidian: $earliestObsidian")
-            val earliestGeode = getEarliestFrom(clayForObsidian, obsidianForGeode)
+//            println("earliestClay: $earliestClay")
+            val earliestObsidian = earliestClay + getEarliestFrom(oreForClay, clayForObsidian, startingBots = 1)
+//            println("earliestObsidian: $earliestObsidian")
+            val earliestGeode = earliestObsidian + getEarliestFrom(clayForObsidian, obsidianForGeode, startingBots = 1)
+//            println("earliestGeode: $earliestGeode")
             println("earliestGeode: $earliestGeode")
-            println("can mine at least one geode: ${earliestClay + earliestObsidian + earliestGeode <= t}")
+            println("can mine at least one geode: ${earliestGeode <= t}")
 
-                return earliestClay + earliestObsidian + earliestGeode <= t
+            return earliestGeode <= t
         }
-
     }
-
-
 }
 
-fun getEarliestFrom(currency: Int, threshold: Int, upper: Int = 20) =
-    (1..upper).find { triangularNumber(it) * currency >= threshold } ?: Int.MAX_VALUE
+fun getEarliestFrom(costPerBot: Int, cost: Int, upper: Int = 24, startingBots: Int = 0): Int {
+
+    var mined = 0
+    var bots = startingBots
+    for (i in 1 until upper) {
+        mined += bots
+        if (i % costPerBot == 0) bots++
+        if (mined >= cost) return i
+    }
+
+    return upper
+
+//    (1..upper).find { triangularNumber(it) / costPerBot >= cost } ?: 100
+}
 
 fun triangularNumber(n: Int) = (n * (n + 1)) / 2
