@@ -12,6 +12,10 @@ fun main() {
     measureTimeMillis {
         day19.solveA().also { result -> println(result) }
     }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
+
+    measureTimeMillis {
+        day19.solveB().also { result -> println(result) }
+    }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
 }
 
 class Day19(inputFileName: String) : Day(inputFileName) {
@@ -69,7 +73,7 @@ class Day19(inputFileName: String) : Day(inputFileName) {
                         }
                     }
                 }
-                println("round $i: no of states: $lineCount")
+//                println("round $i: no of states: $lineCount")
                 buffer.close()
             }
 
