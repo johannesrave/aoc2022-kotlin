@@ -18,8 +18,8 @@ fun main() {
 
 class Day20(inputFileName: String) : Day(inputFileName) {
     fun solveA(): Long {
-        val numbers = parseFrom(input)
-        val mixedNumbers = mixLongs(numbers.map { it.toLong() })
+        val numbers = parseFrom(input).map { it.toLong() }
+        val mixedNumbers = mixLongs(numbers)
 
         val offset = mixedNumbers.indexOf(0)
 
@@ -39,7 +39,6 @@ class Day20(inputFileName: String) : Day(inputFileName) {
         val a = mixedNumbers[offset + 1000]
         val b = mixedNumbers[offset + 2000]
         val c = mixedNumbers[offset + 3000]
-        println(Triple(a, b, c))
 
         return a + b + c
     }
@@ -59,11 +58,15 @@ class Day20(inputFileName: String) : Day(inputFileName) {
                 circle.add(offset.toInt(), it)
             }
         }
-        val subList = circle.takeWhile { it.v != 0L }
-        circle.removeAll(subList)
-        circle.addAll(subList)
+        bringToFront(circle, 0L)
 
         return circle.map { it.v }.circular()
+    }
+
+    private fun bringToFront(circle: MutableList<BoxedLong>, newFirst: Long) {
+        val subList = circle.takeWhile { it.v != newFirst }
+        circle.removeAll(subList)
+        circle.addAll(subList)
     }
 
     private fun parseFrom(input: String): List<Int> =
