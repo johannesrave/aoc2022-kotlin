@@ -67,16 +67,16 @@ class Day21(inputFileName: String) : Day(inputFileName) {
             override fun replaceHumnNumber(v: Long): Long? {
                 return when (op) {
                     "+" -> right.replaceHumnNumber(v - left.number)
-                        ?: left.replaceHumnNumber(Math.subtractExact(v, right.number))
+                        ?: left.replaceHumnNumber(v - right.number)
 
                     "-" -> right.replaceHumnNumber(left.number - v)
-                        ?: left.replaceHumnNumber(Math.addExact(v, right.number))
+                        ?: left.replaceHumnNumber(v + right.number)
 
                     "*" -> right.replaceHumnNumber(v / left.number)
-                        ?: left.replaceHumnNumber(Math.divideExact(v, right.number))
+                        ?: left.replaceHumnNumber(v / right.number)
 
                     "/" -> right.replaceHumnNumber(left.number / v)
-                        ?: left.replaceHumnNumber(Math.multiplyExact(v, right.number))
+                        ?: left.replaceHumnNumber(v * right.number)
 
                     else -> throw IllegalArgumentException("$op is not a valid MonkeyOperator!")
                 }
