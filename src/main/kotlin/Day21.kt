@@ -84,7 +84,7 @@ class Day21(inputFileName: String) : Day(inputFileName) {
         }
 
         companion object {
-            val pattern =
+            private val pattern =
                 "(?<name>\\w+): (?:(?<number>\\d+)|(?<leftName>\\w+) (?<op>[+*/-]) (?<rightName>\\w+))".toRegex()
 
             fun parseFrom(input: String): Map<String, Monkey> = pattern.findAll(input).map { match ->
