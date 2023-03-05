@@ -5,45 +5,25 @@ import kotlin.system.measureTimeMillis
 
 fun main() {
     val day22 = Day22()
-//    measureTimeMillis {
-//        day22.solveA().also { result -> println(result) }
-//    }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
-
-
     measureTimeMillis {
         day22.solveB(topology = Day22.inputTopology).also { result -> println(result) }
     }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
     // 135088 is too low
+    // 164063 is too high
 }
 
 class Day22 {
-//    fun solveA(inputFileName: String = "input/${this.javaClass.name.drop(3)}.txt"): Any {
-//        val tiles = Tile.parseFlatFrom(inputFileName)
-//        val moves = Move.parseFrom(inputFileName)
-//        Token.tile = tiles.first()
-//        for (move in moves) {
-//            Token.makeMove(move)
-//        }
-//        return 1000 * Token.tile.pos.y + 4 * Token.tile.pos.x + Token.dir.ordinal
-//    }
-
-
     fun solveB(inputFileName: String = "input/${this.javaClass.name.drop(3)}.txt", topology: Topology): Any {
-//        val cube = prepareTestFaces()
         val cube = Cube(inputFileName, topology)
-//        val tiles = Tile.parseCubicFrom(inputFileName, cube)
         val moves = Move.parseFrom(inputFileName)
         val token = Token(cube.faces[Face.A]!!.values.first())
-        for (move in moves) {
-            token.makeMove(move)
-//            println("y: ${token.tile.pos.y}, x: ${token.tile.pos.x}, dir: ${token.dir}")
-        }
+        for (move in moves) token.makeMove(move)
 
         println("y: ${token.tile.pos.y + 1}, x: ${token.tile.pos.x + 1}, dir: ${token.dir}")
         return (1000 * (token.tile.pos.y + 1)) + (4 * (token.tile.pos.x + 1)) + token.dir.ordinal
     }
 
-    data class Token (var tile: Tile, var dir: Dir = Dir.E){
+    data class Token(var tile: Tile, var dir: Dir = Dir.E) {
         fun makeMove(move: Move) {
             for (i in 0 until move.dist) {
                 val (linkTurn, linkTile) = tile.linkTowards[dir] ?: break
@@ -105,13 +85,14 @@ class Day22 {
         enum class Face { A, B, C, D, E, F }
 
         data class Topology(val edgeLength: Int, val facePositions: FacePositions, val faceRelations: FaceRelations) {
-            val faceRegions = facePositions.faces.mapValues { (_, facePos) ->
+            val faceRegions = facePositions.faces.mapValues { (face, facePos) ->
                 val xStart = (facePos.x * edgeLength)
                 val xEnd = xStart + edgeLength
                 val yStart = (facePos.y * edgeLength)
                 val yEnd = yStart + edgeLength
 
                 (xStart until xEnd).crossProduct(yStart until yEnd).map { (x, y) -> Pos(x, y) }
+                    .also { println("$face: $xStart to ${xEnd - 1}, $yStart to ${yEnd - 1}") }
             }
 
             val faceEdges = faceRegions.mapValues { (_, region) ->
@@ -231,7 +212,7 @@ class Day22 {
                     Face.C to Pos(1, 1),
                     Face.D to Pos(0, 2),
                     Face.E to Pos(1, 2),
-                    Face.F to Pos(1, 3),
+                    Face.F to Pos(0, 3),
                 )
             ),
             Topology.FaceRelations(
