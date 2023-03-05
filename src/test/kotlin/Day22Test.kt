@@ -8,36 +8,16 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class Day22Test {
-//    @Test
-//    fun `turning Right from East is South`() {
-//        val newDir = Dir.E.turn(Turn.R)
-//        assertEquals(Dir.S, newDir)
-//    }
-//
-//    @Test
-//    fun `turning Left from North is West`() {
-//        val newDir = Dir.N.turn(Turn.L)
-//        assertEquals(Dir.W, newDir)
-//    }
-//
-//    @Test
-//    fun `turning Right from West is North`() {
-//        val newDir = Dir.W.turn(Turn.R)
-//        assertEquals(Dir.N, newDir)
-//    }
-
     @Test
     fun `parsing the Moves produces 7 Moves`() {
         assertEquals(7, Move.parseFrom("input/22_test.txt").size)
     }
-
 
     @Test
     fun `cube is initialized with 6 faces`() {
         val cube = Cube("input/22_test.txt", testTopology)
         assertEquals(6, cube.faces.size)
     }
-
 
     @Test
     fun `topology regions contains correct positions`() {
@@ -110,7 +90,6 @@ class Day22Test {
         assertEquals(Pos(11, 2), linkNorth?.pos)
     }
 
-
     @Test
     fun `cube face at Pos(8, 11) is linked correctly`() {
         val cube = Cube("input/22_test.txt", testTopology)
@@ -124,7 +103,6 @@ class Day22Test {
         assertEquals(Pos(4, 7), linkWest?.pos)
         assertEquals(Pos(8, 10), linkNorth?.pos)
     }
-
 
     @Test
     fun `cube result for test-data is correct`() {

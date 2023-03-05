@@ -324,14 +324,5 @@ class Day22 {
     }
 }
 
-
 private fun IntRange.crossProduct(other: IntRange) =
     this.flatMap { n -> List(other.count()) { n } zip other }
-
-/*
- AB
- C
-DE
-F
- */
-
