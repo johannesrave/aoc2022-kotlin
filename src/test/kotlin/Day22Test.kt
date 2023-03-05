@@ -4,7 +4,6 @@ import Day22.Cube.Face
 import org.junit.jupiter.api.Assertions.assertNull
 import kotlin.test.Test
 import kotlin.test.assertContains
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class Day22Test {
@@ -27,28 +26,26 @@ class Day22Test {
             Pos(8, 1),
             Pos(8, 2),
             Pos(8, 3),
-            Pos(8, 4),
             Pos(9, 0),
             Pos(9, 1),
             Pos(9, 2),
             Pos(9, 3),
-            Pos(9, 4),
             Pos(10, 0),
             Pos(10, 1),
             Pos(10, 2),
             Pos(10, 3),
-            Pos(10, 4),
             Pos(11, 0),
             Pos(11, 1),
             Pos(11, 2),
             Pos(11, 3),
-            Pos(11, 4)
         )
 
         val initializedRegionA = testTopology.faceRegions[Face.A]!!
         assertEquals(16, initializedRegionA.size)
-        assertContains(initializedRegionA, Pos(8, 0))
-        assertContentEquals(expectedPositionsInRegionA, initializedRegionA)
+        for (pos in expectedPositionsInRegionA)
+            assertContains(initializedRegionA, pos)
+//        assertContentEquals(expectedPositionsInRegionA, initializedRegionA)
+
     }
 
     @Test
@@ -102,6 +99,43 @@ class Day22Test {
         assertEquals(Pos(3, 7), linkSouth?.pos)
         assertEquals(Pos(4, 7), linkWest?.pos)
         assertEquals(Pos(8, 10), linkNorth?.pos)
+    }
+
+
+    @Test
+    fun `cube face at Pos(11, 5) is linked correctly`() {
+        val cube = Cube("input/22_test.txt", testTopology)
+        val startingTile = cube.faces[Face.D]!![Pos(11, 5)]!!
+        val linkEast = startingTile.linkTowards[Dir.E]?.second
+        val linkSouth = startingTile.linkTowards[Dir.S]?.second
+        val linkWest = startingTile.linkTowards[Dir.W]?.second
+        val linkNorth = startingTile.linkTowards[Dir.N]?.second
+        assertEquals(Pos(14, 8), linkEast?.pos)
+        assertEquals(Pos(11, 6), linkSouth?.pos)
+        assertEquals(Pos(10, 5), linkWest?.pos)
+        assertNull(linkNorth?.pos)
+    }
+
+    @Test
+    fun `partB token position is correct after moves`() {
+        val cube = Cube("input/22_test.txt", testTopology)
+//        Token.tile = cube.faces[Face.A]!!.values.first()
+        val token = Token(cube.faces[Face.A]!!.values.first())
+        val moves = Move.parseFrom("input/22_test.txt").iterator()
+
+        val expectedPositions = listOf(
+            Pos(10, 0) to Dir.S,
+            Pos(10, 5) to Dir.E,
+            Pos(14, 10) to Dir.W,
+            Pos(10, 10) to Dir.S,
+            Pos(1, 5) to Dir.E,
+            Pos(6, 5) to Dir.N,
+            Pos(6, 4) to Dir.N
+        )
+        for ((expectedPos, expectedDir) in expectedPositions) {
+            token.makeMove(moves.next())
+            assertEquals(expectedPos to expectedDir, token.tile.pos to token.dir)
+        }
     }
 
     @Test

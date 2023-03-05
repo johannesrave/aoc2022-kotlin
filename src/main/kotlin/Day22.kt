@@ -33,24 +33,22 @@ class Day22 {
         val cube = Cube(inputFileName, topology)
 //        val tiles = Tile.parseCubicFrom(inputFileName, cube)
         val moves = Move.parseFrom(inputFileName)
-        Token.tile = cube.faces[Face.A]!!.values.first()
+        val token = Token(cube.faces[Face.A]!!.values.first())
         for (move in moves) {
-            Token.makeMove(move)
+            token.makeMove(move)
+//            println("y: ${token.tile.pos.y}, x: ${token.tile.pos.x}, dir: ${token.dir}")
         }
 
-        println("y: ${Token.tile.pos.y}, x: ${Token.tile.pos.x}, dir: ${Token.dir}")
-        return 1000 * Token.tile.pos.y + 4 * Token.tile.pos.x + Token.dir.ordinal
+        println("y: ${token.tile.pos.y + 1}, x: ${token.tile.pos.x + 1}, dir: ${token.dir}")
+        return (1000 * (token.tile.pos.y + 1)) + (4 * (token.tile.pos.x + 1)) + token.dir.ordinal
     }
 
-    object Token {
-        lateinit var tile: Tile
-        var dir: Dir = Dir.E
+    data class Token (var tile: Tile, var dir: Dir = Dir.E){
         fun makeMove(move: Move) {
-//            println("Token at $tile facing $dir, moving: $move")
             for (i in 0 until move.dist) {
-                val (turn, newTile) = tile.linkTowards[dir] ?: break
-                tile = newTile
-                turn(turn)
+                val (linkTurn, linkTile) = tile.linkTowards[dir] ?: break
+                tile = linkTile
+                dir = turn(linkTurn)
             }
             dir = turn(move.turn)
         }
@@ -191,7 +189,17 @@ class Day22 {
     data class Tile(
         val pos: Pos,
         val linkTowards: MutableMap<Dir, Pair<Turn, Tile>?> = Dir.values().associateWith { null }.toMutableMap()
-    )
+    ) {
+        override fun toString(): String {
+            return "Tile at $pos, linked to ${
+                linkTowards.map { (dir, link) ->
+                    val (turn, tile) = link ?: return@map "$dir: nothing, "
+                    "$dir: ${tile.pos}${if (turn != Turn.NOOP) "turning $turn, " else ", "}"
+                }
+            }"
+        }
+
+    }
 
     data class Move(val dist: Int, val turn: Turn) {
 
