@@ -1,4 +1,5 @@
 import Day22.*
+import Day22.Companion.inputTopology
 import Day22.Companion.testTopology
 import Day22.Cube.Face
 import org.junit.jupiter.api.Assertions.assertNull
@@ -142,5 +143,18 @@ class Day22Test {
     fun `cube result for test-data is correct`() {
         val day22 = Day22()
         assertEquals(5031, day22.solveB("input/22_test.txt", testTopology))
+    }
+
+    @Test
+    fun `cube faces are linked correctly when using 'real' input`() {
+        val cube = Cube("input/22.txt", inputTopology)
+        val firstTileA = cube.faces[Face.A]?.toList()?.first().also { println(it) }
+        val firstTileB = cube.faces[Face.B]?.toList()?.first().also { println(it) }
+        val firstTileC = cube.faces[Face.C]?.toList()?.first().also { println(it) }
+        val firstTileD = cube.faces[Face.D]?.toList()?.first().also { println(it) }
+        val firstTileE = cube.faces[Face.E]?.toList()?.first().also { println(it) }
+        val firstTileF = cube.faces[Face.F]?.toList()?.first().also { println(it) }
+
+
     }
 }

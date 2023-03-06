@@ -10,6 +10,8 @@ fun main() {
     }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
     // 135088 is too low
     // 164063 is too high
+    // 154197 is too high
+    // 135297
 }
 
 class Day22 {
@@ -172,11 +174,13 @@ class Day22 {
         val linkTowards: MutableMap<Dir, Pair<Turn, Tile>?> = Dir.values().associateWith { null }.toMutableMap()
     ) {
         override fun toString(): String {
-            return "Tile at $pos, linked to ${
+            return "Tile at $pos: ${
                 linkTowards.map { (dir, link) ->
-                    val (turn, tile) = link ?: return@map "$dir: nothing, "
-                    "$dir: ${tile.pos}${if (turn != Turn.NOOP) "turning $turn, " else ", "}"
-                }
+                    val otherTile = if (link == null) "nothing" else {
+                        val (turn, tile) = link; "${tile.pos}, turning $turn"
+                    }
+                    "\n    linked towards $dir to: $otherTile"
+                }.joinToString("")
             }"
         }
 
@@ -203,6 +207,14 @@ class Day22 {
 
     companion object {
 
+        /*
+        _AB
+        _C
+        DE
+        F
+
+
+         */
         val inputTopology = Topology(
             50,
             Topology.FacePositions(
@@ -227,13 +239,13 @@ class Day22 {
                         Dir.E to (Face.E to Turn.BACK),
                         Dir.S to (Face.C to Turn.R),
                         Dir.W to (Face.A to Turn.NOOP),
-                        Dir.N to (Face.F to Turn.BACK)
+                        Dir.N to (Face.F to Turn.NOOP)
                     ),
                     Face.C to mapOf(
                         Dir.E to (Face.B to Turn.L),
-                        Dir.S to (Face.E to Turn.L),
-                        Dir.W to (Face.B to Turn.NOOP),
-                        Dir.N to (Face.A to Turn.R)
+                        Dir.S to (Face.E to Turn.NOOP),
+                        Dir.W to (Face.D to Turn.L),
+                        Dir.N to (Face.A to Turn.NOOP)
                     ),
                     Face.D to mapOf(
                         Dir.E to (Face.E to Turn.NOOP),
@@ -249,7 +261,7 @@ class Day22 {
                     ),
                     Face.F to mapOf(
                         Dir.E to (Face.E to Turn.L),
-                        Dir.S to (Face.B to Turn.BACK),
+                        Dir.S to (Face.B to Turn.NOOP),
                         Dir.W to (Face.A to Turn.L),
                         Dir.N to (Face.D to Turn.NOOP)
                     ),
