@@ -6,12 +6,18 @@ fun main() {
     measureTimeMillis {
         day23.solveA("input/23_test.txt").also { result -> println(result) }
     }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
+
+    measureTimeMillis {
+        day23.solveA("input/23.txt").also { result -> println(result) }
+    }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
+    // 4325 is too high
+    // 4241
 }
 
 class Day23 {
 
     /*
-    algo:
+    algo-idea:
     expand board if necessary
     iterate over board
     for each '#', check in directions for elf
@@ -32,13 +38,12 @@ class Day23 {
 
         repeat(moves) {
             val dirs = dirCycle.next()
-//            board.onEach { println(it) }
-            println("must board be expanded: ${boardMustBeExpanded(board)}")
-            println("board height before: ${board.size}")
+//            println("must board be expanded: ${boardMustBeExpanded(board)}")
+//            println("board height before: ${board.size}")
 
             if (boardMustBeExpanded(board)) board = expandBoard(board)
-            board.onEach { println(it) }
-            println("board height after: ${board.size}")
+//            board.onEach { println(it) }
+//            println("board height after: ${board.size}")
 
             // consider spacing and propose moves
             board.onEachIndexed { y, row ->
@@ -68,7 +73,7 @@ class Day23 {
                     }
                 }
             }
-            board.onEach { println(it) }
+//            board.onEach { println(it) }
 
             // make moves by swapping proposed Dir tiles with the respective elves
             board.onEachIndexed { y, row ->
@@ -80,6 +85,7 @@ class Day23 {
                             elfMovingHere.let { (ex, ey) -> board[ey][ex] = emptyTile }
                             board[y][x] = elf
                         }
+
                         'X' -> board[y][x] = emptyTile
                     }
                 }
@@ -87,6 +93,10 @@ class Day23 {
         }
 
 
+        board.onEach { println(it) }
+
+        board = shrinkBoard(board)
+        println("after shrinking")
         board.onEach { println(it) }
 
         return board.sumOf { row -> row.count { it == emptyTile } }
@@ -133,6 +143,17 @@ class Day23 {
         return arrayOf(Array(board.size + 2) { c }.toCharArray()) +
             board.map { emptyTile + it + emptyTile } +
             arrayOf(Array(board.size + 2) { c }.toCharArray())
+    }
+
+    fun shrinkBoard(board: Array<CharArray>, c: Char = '.'): Array<CharArray> {
+        val minX = board.minOf { it.indexOf('#').takeIf { it >= 0 } ?: board.size }
+        val maxX = board.maxOf { it.lastIndexOf('#') }
+        val minY = board.find { it.any { c -> c == '#' } }.let { row -> board.indexOf(row) }
+        val maxY = board.findLast { it.any { c -> c == '#' } }.let { row -> board.indexOf(row) }
+        println("minx: $minX, maxX: $maxX, minY: $minY, mixY: $maxY")
+        return board.sliceArray(minY..maxY)
+            .map { row -> row.sliceArray(minX..maxX) }
+            .toTypedArray()
     }
 
     fun boardMustBeExpanded(board: Array<CharArray>, elf: Char = '#'): Boolean =
