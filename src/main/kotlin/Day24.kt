@@ -4,25 +4,17 @@ import kotlin.system.measureTimeMillis
 fun main() {
     val day24 = Day24()
     measureTimeMillis {
-        day24.solveA().also { result -> println(result) }
+        day24.solve().also { result -> println(result) }
     }.also { elapsedTime -> println("Time taken: $elapsedTime ms") }
+    // A: 297
+    // B: 856
 }
 
 internal typealias Board = Array<IntArray>
 
 class Day24 {
-    val testInput = """
-        #.######
-        #>>.<^<#
-        #.<..<<#
-        #>v.><>#
-        #<^v^^>#
-        ######.#
-        """.trimIndent()
+    fun solve(inputFileName: String = "input/${this.javaClass.name.drop(3)}.txt"): Any {
 
-    fun solveA(inputFileName: String = "input/${this.javaClass.name.drop(3)}.txt"): Any {
-
-//        var board = testInput.split('\n')
         var board = File(inputFileName).readText(Charsets.UTF_8).split('\n')
             .map { row ->
                 row.toCharArray().map { c ->
@@ -38,29 +30,40 @@ class Day24 {
                 }.toIntArray()
             }.toTypedArray()
 
-        println(board.toCustomString())
-        println()
+//        println(board.toCustomString())
+//        println()
 
         val iterations = (board.size * board[0].size) - 1
         val states = mutableListOf(board)
 
         repeat(iterations) { board = moveAllBlizzards(board, states) }
 
-        val targetPos = Pos(board[0].size - 2, board.size - 1)
+        val targetPos = listOf(
+            Pos(board[0].size - 2, board.size - 1),
+            Pos(1, 0),
+            Pos(board[0].size - 2, board.size - 1)
+        )
+        var targetCounter = 0
+
         var posQueue = setOf(Pos(1, 0))
         sequence { while (true) yieldAll(states) }.forEachIndexed { i, state ->
-            println("posQueue-size: ${posQueue.size}")
-            println(posQueue)
+//            println("posQueue-size: ${posQueue.size}")
+//            println(posQueue)
             posQueue = posQueue
                 .flatMap { (x, y) ->
                     listOf(Pos(x, y - 1), Pos(x + 1, y), Pos(x, y + 1), Pos(x - 1, y), Pos(x, y))
                         .filter { (px, py) -> state.getOrNull(py)?.getOrNull(px) == Empty.b }
                 }.toSet()
-                .also { neighbours -> if (neighbours.any { it == targetPos }) return i }
+            posQueue.find { it == targetPos[targetCounter] }?.let {
+                println("$it reached in $i minutes")
+                posQueue = setOf(targetPos[targetCounter])
+                targetCounter++
+                if (targetCounter == targetPos.size) return i
+            }
         }
-
-        TODO()
+        return -1
     }
+
 
     private fun moveAllBlizzards(
         board: Board,
@@ -73,8 +76,8 @@ class Day24 {
                 moveBlizzards(x, y, board, buffer)
             }
         }
-        println(buffer.toCustomString())
-        println()
+//        println(buffer.toCustomString())
+//        println()
         states.add(buffer)
         return buffer
     }
