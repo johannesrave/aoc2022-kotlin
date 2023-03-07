@@ -215,7 +215,7 @@ class Day23 {
             arrayOf(Array(board.size + 2) { c }.toCharArray())
     }
 
-    fun shrinkBoard(board: Array<CharArray>, c: Char = '.'): Array<CharArray> {
+    fun shrinkBoard(board: Array<CharArray>): Array<CharArray> {
         val minX = board.minOf { it.indexOf('#').takeIf { it >= 0 } ?: board.size }
         val maxX = board.maxOf { it.lastIndexOf('#') }
         val minY = board.find { it.any { c -> c == '#' } }.let { row -> board.indexOf(row) }

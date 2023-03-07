@@ -43,5 +43,5 @@ kotlin {
 }
 
 application {
-    mainClass.set("Day23Kt")
+    mainClass.set("Day24Kt")
 }

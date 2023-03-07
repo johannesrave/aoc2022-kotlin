@@ -148,13 +148,11 @@ class Day22Test {
     @Test
     fun `cube faces are linked correctly when using 'real' input`() {
         val cube = Cube("input/22.txt", inputTopology)
-        val firstTileA = cube.faces[Face.A]?.toList()?.first().also { println(it) }
-        val firstTileB = cube.faces[Face.B]?.toList()?.first().also { println(it) }
-        val firstTileC = cube.faces[Face.C]?.toList()?.first().also { println(it) }
-        val firstTileD = cube.faces[Face.D]?.toList()?.first().also { println(it) }
-        val firstTileE = cube.faces[Face.E]?.toList()?.first().also { println(it) }
-        val firstTileF = cube.faces[Face.F]?.toList()?.first().also { println(it) }
-
-
+        cube.faces[Face.A]?.toList()?.first().also { println(it) }
+        cube.faces[Face.B]?.toList()?.first().also { println(it) }
+        cube.faces[Face.C]?.toList()?.first().also { println(it) }
+        cube.faces[Face.D]?.toList()?.first().also { println(it) }
+        cube.faces[Face.E]?.toList()?.first().also { println(it) }
+        cube.faces[Face.F]?.toList()?.first().also { println(it) }
     }
 }
