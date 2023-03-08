@@ -10,7 +10,7 @@ fun main() {
     // B: 856
 }
 
-internal typealias Board = Array<IntArray>
+private typealias Board = Array<IntArray>
 
 class Day24 {
     fun solve(inputFileName: String = "input/${this.javaClass.name.drop(3)}.txt"): Any {
