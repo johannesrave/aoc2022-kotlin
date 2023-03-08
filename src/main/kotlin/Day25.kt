@@ -46,32 +46,32 @@ class Day25 {
         else -> throw IllegalArgumentException("unknown SNAFU digit found: $c")
     }
 
-    fun intToSNAFU(i: Int): Char = when (i) {
-        (-2) -> '='
-        (-1) -> '-'
-        (0) -> '0'
-        (1) -> '1'
-        (2) -> '2'
-        else -> throw IllegalArgumentException("can't SNAFU digit found: $i")
-    }
+    fun add(a: CharArray, b: CharArray, regWidth: Int = 24): CharArray {
 
-    fun add(a: CharArray, b: CharArray): CharArray {
 
-        val (first, second) = if (a.size >= b.size) (a to b) else (b to a)
-        val carryOver = CharArray(first.size) { '0' }
-        val result = CharArray(first.size) { '0' }
+        a.copyInto(CharArray(regWidth) { '0' })
+        val regA = a.copyInto(CharArray(regWidth) { '0' })
+        val regB = b.copyInto(CharArray(regWidth) { '0' })
+        val carryOver = CharArray(regWidth) { '0' }
 
-        (first zip second).forEachIndexed { i, (c1, c2) ->
-            addWithCarryOver(c1, c2).let { (carryOverDigit, resDigit) ->
-                result[i] = resDigit
-                carryOver[i+1] = resDigit
+        do {
+            (regA zip regB).forEachIndexed { i, (c1, c2) ->
+                addWithCarryOver(c1, c2)
+                    .let { (carryOverDigit, resDigit) ->
+                        regA[i] = resDigit
+                        if (i+1 < regWidth) carryOver[i + 1] = carryOverDigit
+                    }
             }
-        }
+            carryOver.forEachIndexed { i, _ ->
+                regB[i] = carryOver[i]
+                carryOver[i] = '0'
+            }
+        } while (regB.any { it != '0' })
 
-
+        return regA.dropLastWhile { it == '0' }.toCharArray()
     }
 
-    private fun addWithCarryOver(c1: Char, c2: Char) = when (c1) {
+    fun addWithCarryOver(c1: Char, c2: Char) = when (c1) {
         '=' -> when (c2) {
             '=' -> Pair('-', '1')
             '-' -> Pair('-', '2')
