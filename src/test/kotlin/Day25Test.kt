@@ -1,3 +1,4 @@
+
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -27,16 +28,6 @@ class Day25Test {
         val charArrays = day25.parseToCharArrays(testInput)
         assertIs<List<CharArray>>(charArrays)
         assertContentEquals(charArrays[0], arrayOf('2', '-', '0', '-', '=', '1').toCharArray())
-    }
-
-    @Test
-    fun `SNAFU to Int`() {
-        val day25 = Day25()
-        assertEquals(day25.SNAFUtoInt('='), -2)
-        assertEquals(day25.SNAFUtoInt('-'), -1)
-        assertEquals(day25.SNAFUtoInt('0'), 0)
-        assertEquals(day25.SNAFUtoInt('1'), 1)
-        assertEquals(day25.SNAFUtoInt('2'), 2)
     }
 
     @Test
@@ -80,12 +71,24 @@ class Day25Test {
 
 
     @Test
-    fun `test input is added correctly`() {
+    fun `toSnafu generates reversed CharArray`() {
         val day25 = Day25()
-        val first = arrayOf('=').reversed().toCharArray()
-        val second = arrayOf('=').reversed().toCharArray()
-        val expectedResult = arrayOf('-', '1').reversed().toCharArray()
+        val first = day25.toSnafu('=')
+        val second = day25.toSnafu('=')
+        val expectedResult = day25.toSnafu('-', '1')
 
         assertContentEquals(expectedResult, day25.add(first, second))
+    }
+
+    @Test
+    fun `test input is added correctly`() {
+        val day25 = Day25()
+        val snafus = day25.parseToCharArrays(testInput)
+
+        val actualResult = snafus.fold(day25.toSnafu('0')) { sum, snafu -> day25.add(sum, snafu) }
+
+        val expectedResult = day25.toSnafu('2','=','-','1','=','0')
+
+        assertContentEquals(expectedResult, actualResult)
     }
 }

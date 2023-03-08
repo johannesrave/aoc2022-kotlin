@@ -13,42 +13,20 @@ class Day25 {
     algo part A
     two ideas:
     1. just add all numbers in their original SNAFU form without ever finding out their dec-value
-    2. naive (and probably more work): convert all inputs, add, convert output back to snafu
-
-    trying 1. first:
-
-    put number and successive number into adder, which has 4 arrays:
-    - first number
-    - second number
-    - carry over
-    - result
-
-    add char by char beginning with the least significant digit
-
-    add result with next number in list
-
-    when list is empty, print result
-
-
+    2. nevermind, the first one worked fine
      */
     fun solve(inputFileName: String = "input/${this.javaClass.name.drop(3)}.txt"): Any {
-        File(inputFileName).readText(Charsets.UTF_8)
-        TODO()
+        val snafus = parseToCharArrays(File(inputFileName).readText(Charsets.UTF_8))
+
+        val chars = snafus.fold(toSnafu('0')) { sum, snafu -> add(sum, snafu) }
+        return chars.reversed().joinToString ("")
     }
 
     fun parseToCharArrays(input: String) = input.split('\n').map { it.reversed().toCharArray() }
-    fun SNAFUtoInt(c: Char): Int = when (c) {
-        '=' -> (-2)
-        '-' -> (-1)
-        '0' -> (0)
-        '1' -> (1)
-        '2' -> (2)
-        else -> throw IllegalArgumentException("unknown SNAFU digit found: $c")
-    }
+
+    fun toSnafu(vararg c: Char) = c.reversed().toCharArray()
 
     fun add(a: CharArray, b: CharArray, regWidth: Int = 24): CharArray {
-
-
         a.copyInto(CharArray(regWidth) { '0' })
         val regA = a.copyInto(CharArray(regWidth) { '0' })
         val regB = b.copyInto(CharArray(regWidth) { '0' })
@@ -59,7 +37,7 @@ class Day25 {
                 addWithCarryOver(c1, c2)
                     .let { (carryOverDigit, resDigit) ->
                         regA[i] = resDigit
-                        if (i+1 < regWidth) carryOver[i + 1] = carryOverDigit
+                        if (i + 1 < regWidth) carryOver[i + 1] = carryOverDigit
                     }
             }
             carryOver.forEachIndexed { i, _ ->
@@ -120,5 +98,3 @@ class Day25 {
         else -> throw IllegalArgumentException("$c1, $c2")
     }
 }
-
-
