@@ -18,7 +18,7 @@ private fun solve(
     moves: List<Move>,
     moveFunc: (stacks: Array<CrateStack>, move: Move) -> Array<CrateStack>
 ): Any {
-    var mutableStacks = stacks.map { it.toCharArray().toList() }.toTypedArray()
+    var mutableStacks = stacks.map { it.toList() }.toTypedArray()
     for (move in moves) {
         mutableStacks = moveFunc(mutableStacks, move)
     }

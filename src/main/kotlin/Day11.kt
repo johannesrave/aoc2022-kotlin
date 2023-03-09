@@ -71,27 +71,20 @@ class Day11(inputFileName: String) : Day(inputFileName) {
                             operandString == "old" -> { a: Item -> a.square() }
                             operatorString == "*" -> { a: Item -> a * operandString.toInt() }
                             operatorString == "+" -> { a: Item -> a + operandString.toInt() }
-                            else -> { a: Item -> a } // this can't happen and is just to keep the type from being nullable.
+                            else -> throw IllegalArgumentException(
+                                "Can't process invalid operand $operandString or operator $operatorString"
+                            )
                         }
 
                         Monkey(id, items, inspect, divisorString.toInt(), trueId, falseId)
 
                     }.associateBy { it.id }
             }
-
-//        fun inspectAllItems(monkeys: Map<String, Monkey>) {
-//            items.forEach { item ->
-//                val worry = op(item) / 3
-//                val nextMonkey = if (worry % divisor == 0) trueId else falseId
-//                monkeys[nextMonkey]?.items?.add(worry)
-//                inspections++
-//            }
-//            items.clear()
-//        }
         }
     }
 
 }
+
 private operator fun Item.times(a: Int): Item = this.mapValues { (div, n) -> (n * a) % div }
 
 private operator fun Item.plus(a: Int): Item = this.mapValues { (div, n) -> (n + a) % div }

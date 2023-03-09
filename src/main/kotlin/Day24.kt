@@ -32,7 +32,6 @@ class Day24 {
 
 //        println(board.toCustomString())
 //        println()
-
         val iterations = (board.size * board[0].size) - 1
         val states = mutableListOf(board)
 

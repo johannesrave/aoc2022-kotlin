@@ -100,7 +100,7 @@ class Day18(inputFileName: String) : Day(inputFileName) {
                 connectedVoxels.add(currentVoxel)
                 val neighbours = currentVoxel
                     .getNeighboursWithinBounds(this)
-                    .filter { this.getAtVoxel(it) == false }
+                    .filter { getAtVoxel(it) == false }
 
                 neighbours.forEach { this.setAtVoxel(it, true) }
                 queue.addAll(neighbours)

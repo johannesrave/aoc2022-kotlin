@@ -1,7 +1,6 @@
 import java.io.File
 
 fun main() {
-
     val solutionA = solve("input/04.txt", fullyContained)
     println(solutionA)
 
@@ -16,15 +15,14 @@ private fun solve(input: String, cond: (List<Int>) -> Boolean): Any {
         .readText(Charsets.UTF_8)
         .split("\n")
         .map { regex.find(it)!!.groupValues.drop(1).map { it.toInt() } }
-        .filter { cond(it) }
-        .count()
+        .count { cond(it) }
 }
 
 private val fullyContained: (List<Int>) -> Boolean =
-    { ints -> (ints[0] >= ints[2] && ints[1] <= ints[3]) || (ints[0] <= ints[2] && ints[1] >= ints[3]) }
+    { (lowerA, upperA, lowerB, upperB) -> (lowerA >= lowerB && upperA <= upperB) || (lowerA <= lowerB && upperA >= upperB) }
 
 private val partiallyContained: (List<Int>) -> Boolean =
-    { ints -> (ints[0] >= ints[2] && ints[0] <= ints[3]) || (ints[1] >= ints[2] && ints[1] <= ints[3]) }
+    { (lowerA, upperA, lowerB, upperB) -> (lowerA in lowerB..upperB) || (upperA in lowerB..upperB) }
 
 private val contained: (List<Int>) -> Boolean =
     { ints -> partiallyContained(ints) || fullyContained(ints) }

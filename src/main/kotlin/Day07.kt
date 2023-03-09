@@ -12,7 +12,7 @@ fun main() {
 
 private fun solveA(input: String): Any {
     val rootDir = parseToDir(input)
-    val allDirs = getAllDirs(rootDir)
+    val allDirs = getAllDirsIn(rootDir)
     return allDirs
         .filter { it.dirSize <= 100_000 }
         .sumOf { it.dirSize }
@@ -26,13 +26,13 @@ private fun solveB(input: String): Any {
     val USED_SPACE = rootDir.dirSize
     val NEEDED_SPACE_LEFT = USED_SPACE - (DISK_SIZE - SPACE_FOR_UPDATE)
 
-    val allDirs = getAllDirs(rootDir)
+    val allDirs = getAllDirsIn(rootDir)
     return allDirs
         .filter { it.dirSize >= NEEDED_SPACE_LEFT }
         .minBy { it.dirSize }.dirSize
 }
 
-private fun getAllDirs(rootDir: Dir): MutableSet<Dir> {
+private fun getAllDirsIn(rootDir: Dir): MutableSet<Dir> {
     val queue = listOf(rootDir).toMutableList()
     val allDirs = emptySet<Dir>().toMutableSet()
 
