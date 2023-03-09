@@ -33,10 +33,10 @@ class Day25Test {
     @Test
     fun `SNAFU digits are added correctly`() {
         val day25 = Day25()
-        assertEquals(day25.addWithCarryOver('2', '2'), '1' to '-')
-        assertEquals(day25.addWithCarryOver('1', '1'), '0' to '2')
-        assertEquals(day25.addWithCarryOver('0', '0'), '0' to '0')
-        assertEquals(day25.addWithCarryOver('=', '='), '-' to '1')
+        assertEquals(day25.addSnafuDigitsWithCarryOver('2', '2'), '1' to '-')
+        assertEquals(day25.addSnafuDigitsWithCarryOver('1', '1'), '0' to '2')
+        assertEquals(day25.addSnafuDigitsWithCarryOver('0', '0'), '0' to '0')
+        assertEquals(day25.addSnafuDigitsWithCarryOver('=', '='), '-' to '1')
     }
 
     @Test

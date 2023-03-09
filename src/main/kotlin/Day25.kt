@@ -11,9 +11,16 @@ fun main() {
 class Day25 {
     /*
     algo part A
-    two ideas:
-    1. just add all numbers in their original SNAFU form without ever finding out their dec-value
-    2. nevermind, the first one worked fine
+    the idea behind this solution is to never even try to convert the SNAFU numbers to decimal numbers -
+    it seems like too much work and wasted computations.
+    instead, we build an adder (maybe similar to what's happening in a CPU) for SNAFUs.
+
+    the adder has two registers a and b for the two summands and a third one for carry over digits.
+    the result of adding a and b without carryover is stored to a, and the carryover buffer is written to
+    b after all digits have been added. the process is repeated until b only contains '0', so all carryovers
+    have been resolved.
+
+    this is repeated for the whole list of inputs - they are reduced/folded to a single snafu, which is the answer.
      */
     fun solve(inputFileName: String = "input/${this.javaClass.name.drop(3)}.txt"): Any {
         val snafus = parseToCharArrays(File(inputFileName).readText(Charsets.UTF_8))
@@ -34,7 +41,7 @@ class Day25 {
 
         do {
             (regA zip regB).forEachIndexed { i, (c1, c2) ->
-                addWithCarryOver(c1, c2)
+                addSnafuDigitsWithCarryOver(c1, c2)
                     .let { (carryOverDigit, resDigit) ->
                         regA[i] = resDigit
                         if (i + 1 < regWidth) carryOver[i + 1] = carryOverDigit
@@ -49,7 +56,7 @@ class Day25 {
         return regA.dropLastWhile { it == '0' }.toCharArray()
     }
 
-    fun addWithCarryOver(c1: Char, c2: Char) = when (c1) {
+    fun addSnafuDigitsWithCarryOver(c1: Char, c2: Char) = when (c1) {
         '=' -> when (c2) {
             '=' -> Pair('-', '1')
             '-' -> Pair('-', '2')
@@ -60,7 +67,7 @@ class Day25 {
         }
 
         '-' -> when (c2) {
-            '=' -> Pair('-', '2')//
+            '=' -> Pair('-', '2')
             '-' -> Pair('0', '=')
             '0' -> Pair('0', '-')
             '1' -> Pair('0', '0')
